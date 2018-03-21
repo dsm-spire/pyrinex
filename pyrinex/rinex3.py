@@ -14,7 +14,8 @@ BEIDOU=0
 def _rinexnav3(fn, ofn=None):
     """
     Reads RINEX 3.0 NAV files
-
+    Michael Hirsch, Ph.D.
+    SciVision, Inc.
     http://www.gage.es/sites/default/files/gLAB/HTML/SBAS_Navigation_Rinex_v3.01.html
     """
     fn = Path(fn).expanduser()
@@ -24,7 +25,8 @@ def _rinexnav3(fn, ofn=None):
     with fn.open('r') as f:
         """verify RINEX version, and that it's NAV"""
         line = f.readline()
-        assert int(float(line[:9]))==3,'see rinexnav2() for RINEX 3.0 files'
+        ver = float(line[:9])
+        assert int(ver)==3,'see _rinexnav2() for RINEX 3.0 files'
         assert line[20] == 'N', 'Did not detect Nav file'
 
         """
@@ -85,12 +87,13 @@ def _newnav(l):
     svtype = sv[0]
 
     if svtype == 'G':
+        """ftp://igs.org/pub/data/format/rinex302.pdf page A-16, A-18"""
         sv = int(sv[1:]) + 0
-        fields = ['sv','aGf0','aGf1','SVclockDriftRate',
+        fields = ['sv','SVclockBias','SVclockDrift','SVclockDriftRate',
                   'IODE','Crs','DeltaN','M0',
                   'Cuc','Eccentricity','Cus','sqrtA',
-                  'Toe','Cic','OMEGA0','Cis',
-                  'Io','Crc','omega','OMEGA DOT',
+                  'Toe','Cic','omega0','Cis',
+                  'Io','Crc','omega','OmegaDot',
                   'IDOT','CodesL2','GPSWeek','L2Pflag',
                   'SVacc','SVhealth','TGD','IODC',
                   'TransTime','FitIntvl']

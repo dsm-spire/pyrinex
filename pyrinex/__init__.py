@@ -15,6 +15,7 @@ from time import time
 from .rinex2 import _rinexnav2
 from .rinex3 import _rinexnav3
 
+
 #%% Navigation file
 def rinexnav(fn, ofn=None):
     fn = Path(fn).expanduser()
