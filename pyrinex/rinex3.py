@@ -11,7 +11,7 @@ GLONASS=37
 QZSS=192
 BEIDOU=0
 
-def _rinexnav3(fn, ofn=None):
+def _rinexnav3(fn):
     """
     Reads RINEX 3.0 NAV files
     Michael Hirsch, Ph.D.
@@ -73,15 +73,6 @@ def _rinexnav3(fn, ofn=None):
                           attrs={'RINEX version':ver,
                                  'RINEX filename':fn.name}
                           )
-
-    if ofn:
-        ofn = Path(ofn).expanduser()
-        print('saving NAV data to',ofn)
-        if ofn.is_file():
-            wmode='a'
-        else:
-            wmode='w'
-        nav.to_netcdf(ofn, group='NAV', mode=wmode)
 
     return nav
 

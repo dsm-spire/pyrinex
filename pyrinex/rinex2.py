@@ -12,7 +12,7 @@ F = ('SVclockBias','SVclockDrift','SVclockDriftRate','IODE','Crs','DeltaN',
      'Crc','omega','OmegaDot','IDOT','CodesL2','GPSWeek','L2Pflag','SVacc',
      'SVhealth','TGD','IODC','TransTime','FitIntvl')
 
-def _rinexnav2(fn, ofn=None):
+def _rinexnav2(fn):
     """
     Reads RINEX 2.11 NAV files
     Michael Hirsch, Ph.D.
@@ -86,16 +86,6 @@ def _rinexnav2(fn, ofn=None):
                           attrs={'RINEX version':ver,
                                  'RINEX filename':fn.name}
                           )
-
-
-    if ofn:
-        ofn = Path(ofn).expanduser()
-        print('saving NAV data to',ofn)
-        if ofn.is_file():
-            wmode='a'
-        else:
-            wmode='w'
-        nav.to_netcdf(ofn, group='NAV', mode=wmode)
 
     return nav
 
