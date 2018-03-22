@@ -5,6 +5,7 @@ try:
 except (ImportError,AttributeError):
     from pathlib2 import Path
 #
+import logging
 import xarray
 from time import time
 #
@@ -22,11 +23,15 @@ def getRinexVersion(fn):
         return float(line[:9])
 
 #%% Navigation file
-def rinexnav(fn, ofn=None):
+def rinexnav(fn, ofn=None, group='NAV'):
 
     fn = Path(fn).expanduser()
     if fn.suffix=='.nc':
-        return xarray.open_dataset(fn, group='NAV')
+        try:
+            return xarray.open_dataset(fn, group=group)
+        except OSError:
+            logging.error('Group {} not found in {}'.format(group,fn))
+            return
 
     ver = getRinexVersion(fn)
     if int(ver) == 2:
@@ -40,12 +45,12 @@ def rinexnav(fn, ofn=None):
         ofn = Path(ofn).expanduser()
         print('saving NAV data to',ofn)
         wmode='a' if ofn.is_file() else 'w'
-        nav.to_netcdf(ofn, group='NAV', mode=wmode)
+        nav.to_netcdf(ofn, group=group, mode=wmode)
 
     return nav
 
 # %% Observation File
-def rinexobs(fn, ofn=None, use=None, verbose=False):
+def rinexobs(fn, ofn=None, use=None, group='OBS',verbose=False):
     """
     Program overviw:
     1) scan the whole file for the header and other information using scan(lines)
@@ -56,7 +61,12 @@ def rinexobs(fn, ofn=None, use=None, verbose=False):
 
     fn = Path(fn).expanduser()
     if fn.suffix=='.nc':
-        return xarray.open_dataset(fn, group='OBS')
+        try:
+            return xarray.open_dataset(fn, group=group)
+        except OSError:
+            logging.error('Group {} not found in {}'.format(group,fn))
+            return
+
 
 
     tic = time()
@@ -76,7 +86,7 @@ def rinexobs(fn, ofn=None, use=None, verbose=False):
         wmode='a' if ofn.is_file() else 'w'
 
         enc = {k:{'zlib':True,'complevel':COMPLVL,'fletcher32':True} for k in obs.data_vars}
-        obs.to_netcdf(ofn, group='OBS', mode=wmode,encoding=enc)
+        obs.to_netcdf(ofn, group=group, mode=wmode,encoding=enc)
 
     return obs
 
