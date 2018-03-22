@@ -132,11 +132,32 @@ def _newnav(l):
 
 
 def _scan3(fn, verbose=False):
-  """
-  scan the document for the header info and for the line on which each block starts
-  """
-  with fn.open('r') as f:
+    """
+    procss RINEX OBS data
+    """
+    with fn.open('r') as f:
+        fields, header = _getObsTypes(f)
+
+
+        data = None
+    # %% process rest of file
+        while True:
+            l = f.readline()
+            if not l:
+                break
+
+            assert l[0] == '>'  # pg. A13
+
+            time = datetime(int(l[2:6]), int(l[7:9]), int(l[10:12]),
+                            hour=int(l[13:15]), minute=int(l[16:18]), second=int(l[19:21]),
+                            microsecond=int(l[22:29])*1000000)
+            if verbose:
+                print(time)
+
+def _getObsTypes(f):
+    """ get RINEX 3 OBS types, for each system type"""
     header={}
+    fields={}
     # Capture header info
     for l in f:
         if "END OF HEADER" in l:
@@ -144,12 +165,32 @@ def _scan3(fn, verbose=False):
 
         h = l[60:80]
         c = l[:60]
-        if '# / TYPES OF OBSERV' in h:
-            c = ' '.join(c.split()[1:]) # drop vestigal count
+        if 'SYS / # / OBS TYPES' in h:
+            k = c[0]
+            fields[k] = c[6:].split()
+            N = int(c[3:6])
+            if N > 13: # Rinex 3.03, pg. A6, A7
+                l = f.readline()
+                assert 'SYS / # / OBS TYPES' in l[60:]
+                fields[k] += l[6:].split()
+            if N > 26:
+                l = f.readline()
+                assert 'SYS / # / OBS TYPES' in l[60:]
+                fields[k] += l[6:].split()
+            if N > 39:
+                l = f.readline()
+                assert 'SYS / # / OBS TYPES' in l[60:]
+                fields[k] += l[6:].split()
+
+            continue
 
         if h.strip() not in header: #Header label
             header[h.strip()] = c  # don't strip for fixed-width parsers
             # string with info
-        else:
+        else: # concatenate to the existing string
             header[h.strip()] += " " + c
-            #concatenate to the existing string
+
+    # list with x,y,z cartesian
+    header['APPROX POSITION XYZ'] = [float(j) for j in header['APPROX POSITION XYZ'].split()]
+
+    return fields, header

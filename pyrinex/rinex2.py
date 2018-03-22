@@ -102,7 +102,7 @@ def _rinexnav2(fn, ofn=None):
 
 def _scan2(fn, verbose=False):
   """
-  scan the document for the header info and for the line on which each block starts
+   procss RINEX OBS data
   """
   with fn.open('r') as f:
     header={}
