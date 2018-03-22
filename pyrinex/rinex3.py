@@ -1,3 +1,4 @@
+from __future__ import print_function # needed for py27s
 from . import Path
 import numpy as np
 from datetime import datetime
@@ -169,7 +170,7 @@ def _scan3(fn, use, verbose=False):
                 dsf[k+'ssi'] = (('time','sv'), np.atleast_2d(garr[:,i*3+2]))
 
             if verbose:
-                print(time,end='\r')
+                print(time,'\r',end='')
 
             if data is None:
                 data = xarray.Dataset(dsf,coords={'time':[time],'sv':gsv})#, attrs={'toffset':toffset})
