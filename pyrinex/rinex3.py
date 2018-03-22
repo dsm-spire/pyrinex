@@ -128,3 +128,28 @@ def _newnav(l):
                   second  =int(l[21:23]))
 
     return sv, time, fields
+
+
+
+def _scan3(fn, verbose=False):
+  """
+  scan the document for the header info and for the line on which each block starts
+  """
+  with fn.open('r') as f:
+    header={}
+    # Capture header info
+    for l in f:
+        if "END OF HEADER" in l:
+            break
+
+        h = l[60:80]
+        c = l[:60]
+        if '# / TYPES OF OBSERV' in h:
+            c = ' '.join(c.split()[1:]) # drop vestigal count
+
+        if h.strip() not in header: #Header label
+            header[h.strip()] = c  # don't strip for fixed-width parsers
+            # string with info
+        else:
+            header[h.strip()] += " " + c
+            #concatenate to the existing string

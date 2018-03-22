@@ -5,12 +5,7 @@ try:
 except (ImportError,AttributeError):
     from pathlib2 import Path
 #
-
-from math import ceil
-import numpy as np
-from datetime import datetime
 import xarray
-from io import BytesIO
 from time import time
 #
 from .rinex2 import _rinexnav2, _scan2
