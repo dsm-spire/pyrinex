@@ -65,18 +65,17 @@ def _rinexnav2(fn, ofn=None):
             """
             now get the data as one big long string per SV
             """
-            raw = l[22:79]  # :79, NOT :80
+            raw = l[22:79]  # NOTE: MUST be 79, not 80 due to some files that put \n a character early!
             for _ in range(Nl):
                 raw += f.readline()[STARTCOL2:79]
             # one line per SV
             raws.append(raw.replace('D','E'))
 # %% parse
     # for RINEX 2, don't use delimiter
-    Nt = len(raws)
-    darr = np.empty((Nt, Nf))
+    darr = np.empty((len(raws), Nf))
 
     for i,r in enumerate(raws):
-        darr[i,:] = np.genfromtxt(BytesIO(r.encode('ascii')), delimiter=[Lf]*Nf)
+        darr[i,:] = np.genfromtxt(BytesIO(r.encode('ascii')), delimiter=[Lf]*Nf)  # must have *Nf to avoid false nan on trailing spaces
 
     dsf = {f: ('time',d) for (f,d) in zip(F,darr.T)}
     dsf.update({'sv':('time',sv)})

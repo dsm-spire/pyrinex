@@ -18,9 +18,11 @@ def _rinexnav3(fn, ofn=None):
     SciVision, Inc.
     http://www.gage.es/sites/default/files/gLAB/HTML/SBAS_Navigation_Rinex_v3.01.html
     """
+    Lf = 19 # string length per field
+
     fn = Path(fn).expanduser()
 
-    svs = []; epoch=[]; raws=''
+    svs = []; epoch=[]; raws=[]
 
     with fn.open('r') as f:
         """verify RINEX version, and that it's NAV"""
@@ -40,11 +42,11 @@ def _rinexnav3(fn, ofn=None):
         """
         line = f.readline()
         while True:
-            sv,t,fields,svtype = _newnav(line)
+            sv,time,fields = _newnav(line)
             svs.append(sv)
-            epoch.append(t)
+            epoch.append(time)
 # %% get the data as one big long string per SV, unknown # of lines per SV
-            raw = line[23:80]
+            raw = line[23:80]  # NOTE: 80, files put data in the last column!
 
             while True:
                 line = f.readline()
@@ -53,21 +55,24 @@ def _rinexnav3(fn, ofn=None):
 
                 raw += line[STARTCOL3:80]
             # one line per SV
-            raws += raw + '\n'
+            raws.append(raw.replace('D','E'))
 
             if not line: # EOF
                 break
-
-    raws = raws.replace('D','E')
 # %% parse
-    darr = np.genfromtxt(BytesIO(raws.encode('ascii')),
-                         delimiter=19)
+    darr = np.empty((len(raws), len(fields)))
 
-    nav= xarray.DataArray(data=np.concatenate((np.atleast_2d(svs).T, darr), axis=1),
-                coords={'t':epoch,
-                'data':fields},
-                dims=['t','data'],
-                name=svtype)
+    for i,r in enumerate(raws):
+        darr[i,:] = np.genfromtxt(BytesIO(r.encode('ascii')), delimiter=Lf)
+
+    dsf = {f: ('time',d) for (f,d) in zip(fields,darr.T)}
+    dsf.update({'sv':('time',svs)})
+
+    nav = xarray.Dataset(dsf,
+                          coords={'time':epoch},
+                          attrs={'RINEX version':ver,
+                                 'RINEX filename':fn.name}
+                          )
 
     if ofn:
         ofn = Path(ofn).expanduser()
@@ -88,8 +93,7 @@ def _newnav(l):
 
     if svtype == 'G':
         """ftp://igs.org/pub/data/format/rinex302.pdf page A-16, A-18"""
-        sv = int(sv[1:]) + 0
-        fields = ['sv','SVclockBias','SVclockDrift','SVclockDriftRate',
+        fields = ['SVclockBias','SVclockDrift','SVclockDriftRate',
                   'IODE','Crs','DeltaN','M0',
                   'Cuc','Eccentricity','Cus','sqrtA',
                   'Toe','Cic','omega0','Cis',
@@ -98,30 +102,29 @@ def _newnav(l):
                   'SVacc','SVhealth','TGD','IODC',
                   'TransTime','FitIntvl']
     elif svtype == 'C':
-        sv = int(sv[1:]) + BEIDOU
+        raise NotImplementedError('Beidou Compass not yet done')
     elif svtype == 'R':
-        sv = int(sv[1:]) + GLONASS
+        raise NotImplementedError('GLONASS Not yet done')
     elif svtype == 'S':
-        sv = int(sv[1:]) + SBAS
-        fields=['sv','aGf0','aGf1','MsgTxTime',
+        fields=['SVclockBias','SVRelFreqBias','MsgTxTime',
                 'X','dX','dX2','SVhealth',
                 'Y','dY','dY2','URA',
                 'Z','dZ','dZ2','IODN']
     elif svtype == 'J':
-        sv = int(sv[1:]) + QZSS
+        raise NotImplementedError('QZSS not yet done')
     elif svtype == 'E':
-        raise NotImplementedError('Galileo PRN not yet known')
+        raise NotImplementedError('Galileo not yet done')
     else:
         raise ValueError('Unknown SV type {}'.format(sv[0]))
 
 
     year = int(l[4:8]) # I4
 
-    t = datetime(year = year,
+    time = datetime(year = year,
                   month   =int(l[9:11]),
                   day     =int(l[12:14]),
                   hour    =int(l[15:17]),
                   minute  =int(l[18:20]),
                   second  =int(l[21:23]))
 
-    return sv, t, fields,svtype
+    return sv, time, fields
