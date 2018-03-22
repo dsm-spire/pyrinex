@@ -34,7 +34,7 @@ def rinexnav(fn, ofn=None):
 
 
 # %% Observation File
-def rinexobs(fn, ofn=None, verbose=False):
+def rinexobs(fn, ofn=None, use=None, verbose=False):
     """
     Program overviw:
     1) scan the whole file for the header and other information using scan(lines)
@@ -54,7 +54,7 @@ def rinexobs(fn, ofn=None, verbose=False):
     if int(ver) == 2:
         data = _scan2(fn, verbose)
     elif int(ver) == 3:
-        data = _scan3(fn, verbose)
+        data = _scan3(fn, use, verbose)
     else:
         raise ValueError('unknown RINEX verion {}  {}'.format(ver,fn))
         print("finished in {:.2f} seconds".format(time()-tic))

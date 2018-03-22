@@ -153,7 +153,7 @@ def _scan2(fn, verbose=False):
             toffset = l[68:80]
         except ValueError:
             toffset = None
-
+# %% get SV indices
         Nsv = int(l[29:32])  # Number of visible satellites this time %i3
         # get first 12 SV ID's
         sv = []

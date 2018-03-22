@@ -10,6 +10,7 @@ if __name__ == '__main__':
     p.add_argument('rinexfn',help='path to RINEX 2 or RINEX 3 file')
     p.add_argument('-o','--outfn',help='write data as NetCDF4 file')
     p.add_argument('-v','--verbose',action='store_true')
+    p.add_argument('-use',help='select which GNSS systems to use (for now, GPS only)',nargs='+',default='G')
     p = p.parse_args()
 
     rinexfn = p.rinexfn
@@ -18,7 +19,7 @@ if __name__ == '__main__':
 
         plotnav(nav)
     elif rinexfn.lower().endswith('o') or rinexfn.lower().endswith('o.rnx'):
-        obs = rinexobs(rinexfn, p.outfn, p.verbose)
+        obs = rinexobs(rinexfn, p.outfn, p.use, p.verbose)
 
         plotobs(obs)
     #%% TEC can be made another column (on the last axis) of the blocks array.
