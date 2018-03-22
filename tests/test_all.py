@@ -34,9 +34,10 @@ def test_obs3():
     """./ReadRinex.py tests/demo3.10o -o tests/test3.nc"""
 
     truth = xarray.open_dataset(rdir/'test3.nc', group='OBS')
-    obs = rinexobs(rdir/'demo3.10o')
+    obs = rinexobs(rdir/'demo3.10o', use='G')
 
     assert obs.equals(truth)
+
 
 def test_nav3sbas():
     """./ReadRinex.py tests/demo3.10n -o tests/test3sbas.nc"""

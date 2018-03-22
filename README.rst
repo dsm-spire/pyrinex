@@ -12,7 +12,8 @@
 PyRinex
 =======
 
-RINEX 3 and RINEX 2 reader in Python -- reads NAV and OBS files into ``xarray.Dataset`` for easy use in analysis and plotting.
+RINEX 3 and RINEX 2 reader in Python -- reads NAV and OBS GPS RINEX data into `xarray.Dataset <http://xarray.pydata.org/en/stable/api.html#dataset>`_ for easy use in analysis and plotting.
+This gives remarkable speed vs. legacy iterative methods, and allows for HPC / out-of-core operations on massive amounts of GNSS data.
 
 Writes to NetCDF4 (subset of HDF5).
 This is couple order of magnitude speedup in reading and allows filtering/processing of gigantic files too large to fit into RAM.
@@ -42,8 +43,10 @@ read Obs
 
     obsdata,header = pyrinex.rinexobs('tests/demo.10o')
 
-This returns a 4-D xarray DataArray of data within the .XXo observation file.
-Indexed by measurement x SV x time x signal
+This returns an 
+`xarray.Dataset <http://xarray.pydata.org/en/stable/api.html#dataset>`_
+of data within the .XXo observation file.
+
 
 read Nav
 --------
