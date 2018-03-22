@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-install_requires = ['numpy','numpy','xarray','netcdf4','pathlib2']
+install_requires = ['numpy','xarray','netcdf4','pathlib2']
 tests_require=['pytest','nose','coveralls']
 # %%
 from setuptools import setup,find_packages
@@ -8,7 +8,7 @@ setup(name='pyrinex',
 	  description='Python RINEX reader that is very fast',
 	  long_description=open('README.rst').read(),
 	  author='Michael Hirsch, Ph.D.',
-      version='1.2.0',
+      version='1.2.1',
 	  url='https://github.com/scivision/pyrinex',
 	  install_requires=install_requires,
 	  tests_require=tests_require,
