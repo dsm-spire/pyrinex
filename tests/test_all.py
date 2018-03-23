@@ -16,9 +16,10 @@ def test_obs2():
     """./ReadRinex.py tests/demo.10o -o tests/test.nc"""
 
     truth = xarray.open_dataset(rdir/'test.nc', group='OBS')
-    obs = rinexobs(rdir/'demo.10o')
 
-    assert obs.equals(truth)
+    for u in (None,'m','all',' ','',['G','R','S']):
+        obs = rinexobs(rdir/'demo.10o', use=u)
+        assert obs.equals(truth)
 
 
 def test_nav2():

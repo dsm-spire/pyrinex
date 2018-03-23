@@ -50,7 +50,7 @@ def rinexnav(fn, ofn=None, group='NAV'):
     return nav
 
 # %% Observation File
-def rinexobs(fn, ofn=None, use=None, group='OBS',verbose=False):
+def rinexobs(fn, ofn=None, use='G', group='OBS',verbose=False):
     """
     Program overviw:
     1) scan the whole file for the header and other information using scan(lines)
@@ -72,7 +72,7 @@ def rinexobs(fn, ofn=None, use=None, group='OBS',verbose=False):
     tic = time()
     ver = getRinexVersion(fn)
     if int(ver) == 2:
-        obs = _scan2(fn, verbose)
+        obs = _scan2(fn, use, verbose)
     elif int(ver) == 3:
         obs = _scan3(fn, use, verbose)
     else:
