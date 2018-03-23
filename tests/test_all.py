@@ -51,15 +51,26 @@ def test_nav2():
 
 def test_obs3_onesat():
     """
-    ./ReadRinex.py tests/demo3.10o -o tests/test3.nc
-    One at a time only for now RINEX 3 -- not a big deal since processing is so fast.
+    ./ReadRinex.py tests/demo3.10o  -u G -o tests/test3G.nc
     """
 
-    truth = xarray.open_dataset(rdir/'test3.nc', group='OBS')
+    truth = xarray.open_dataset(rdir/'test3G.nc', group='OBS')
 
     for u in ('G',['G']):
         obs = rinexobs(rdir/'demo3.10o', use=u)
         assert obs.equals(truth)
+
+def test_obs3_multisat():
+    """
+    ./ReadRinex.py tests/demo3.10o  -u G R -o tests/test3GR.nc
+    """
+    use = ('G','R')
+
+    obs = rinexobs(rdir/'demo3.10o', use=use)
+
+    for u in use:
+        truth = xarray.open_dataset(rdir/(u+'-test3GR.nc'), group='OBS')
+        assert obs[u].equals(truth)
 
 
 def test_nav3sbas():
