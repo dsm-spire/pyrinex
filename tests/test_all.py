@@ -17,10 +17,9 @@ def test_obs2():
 
     truth = xarray.open_dataset(rdir/'test.nc', group='OBS')
 
-    for u in (None,'m','all',' ',''):
+    for u in (None,'m','all',' ','',['G','R','S']):
         obs = rinexobs(rdir/'demo.10o', use=u)
-
-    assert obs.equals(truth)
+        assert obs.equals(truth)
 
 
 def test_nav2():

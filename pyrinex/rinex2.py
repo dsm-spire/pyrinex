@@ -96,8 +96,12 @@ def _scan2(fn, use, verbose=False):
    procss RINEX OBS data
   """
 
-  if not use or not use[0].strip() or use[0].lower() in ('m','all'):
+  if (not use or not use[0].strip() or
+      isinstance(use,str) and use.lower() in ('m','all') or
+      isinstance(use,(tuple,list,np.ndarray)) and use[0].lower() in ('m','all')):
+
       use = None
+
 
   with fn.open('r') as f:
     header={}
