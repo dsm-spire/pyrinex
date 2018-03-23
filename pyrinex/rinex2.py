@@ -91,10 +91,14 @@ def _rinexnav2(fn):
     return nav
 
 
-def _scan2(fn, verbose=False):
+def _scan2(fn, use, verbose=False):
   """
    procss RINEX OBS data
   """
+
+  if not use or not use[0].strip() or use[0].lower() in ('m','all'):
+      use = None
+
   with fn.open('r') as f:
     header={}
     Nobs = None
@@ -159,7 +163,14 @@ def _scan2(fn, verbose=False):
             sv = _getSVlist(l, min(12,n), sv)
             n -= 12
         assert Nsv == len(sv), 'satellite list read incorrectly'
-# %% data processing
+# %% TODO make for all systems, not just GNSS
+        if use is not None:
+            iuse = [i for i,s in enumerate(sv) if s[0] in use]
+        else:
+            iuse = slice(None)
+        gsv = np.array(sv)[iuse]
+        Ngsv = len(gsv)
+# %% assign data for each time step
         darr = np.empty((Nsv,Nobs*3))
         Nl_sv = int(ceil(Nobs/5))  # CEIL needed for Py27 only.
 
@@ -167,23 +178,28 @@ def _scan2(fn, verbose=False):
             raw = ''
             for _ in range(Nl_sv):
                 raw += f.readline()[:80]
+
+            if use is not None and not s[0] in use: # TODO: allow more than one selection
+                continue
+
             raw = raw.replace('\n',' ')  # some files truncate and put \n in data space.
 
-            darr[i,:] = np.genfromtxt(BytesIO(raw.encode('ascii')), delimiter=[Nsv,1,1]*Nobs)
-
+            darr[i,:] = np.genfromtxt(BytesIO(raw.encode('ascii')), delimiter=[Ngsv,1,1]*Nobs)
+# % select only "used" satellites
+        garr = darr[iuse,:]
         dsf = {}
         for i,k in enumerate(fields):
-            dsf[k] = (('time','sv'),np.atleast_2d(darr[:,i*3]))
+            dsf[k] = (('time','sv'),np.atleast_2d(garr[:,i*3]))
             if not k in ('S1','S2'): # FIXME which other should be excluded?
                 if k in ('L1','L2'):
-                    dsf[k+'lli'] = (('time','sv'),np.atleast_2d(darr[:,i*3+1]))
-                dsf[k+'ssi'] = (('time','sv'),np.atleast_2d(darr[:,i*3+2]))
+                    dsf[k+'lli'] = (('time','sv'),np.atleast_2d(garr[:,i*3+1]))
+                dsf[k+'ssi'] = (('time','sv'),np.atleast_2d(garr[:,i*3+2]))
 
         if data is None:
-            data = xarray.Dataset(dsf,coords={'time':[time],'sv':sv}, attrs={'toffset':toffset})
+            data = xarray.Dataset(dsf,coords={'time':[time],'sv':gsv}, attrs={'toffset':toffset})
         else:
             data = xarray.concat((data,
-                                  xarray.Dataset(dsf,coords={'time':[time],'sv':sv}, attrs={'toffset':toffset})),
+                                  xarray.Dataset(dsf,coords={'time':[time],'sv':gsv}, attrs={'toffset':toffset})),
                                   dim='time')
 
     data.attrs['filename'] = f.name
