@@ -49,13 +49,17 @@ def test_nav2():
     assert nav.equals(truth)
 # %% RINEX 3
 
-def test_obs3():
-    """./ReadRinex.py tests/demo3.10o -o tests/test3.nc"""
+def test_obs3_onesat():
+    """
+    ./ReadRinex.py tests/demo3.10o -o tests/test3.nc
+    One at a time only for now RINEX 3 -- not a big deal since processing is so fast.
+    """
 
     truth = xarray.open_dataset(rdir/'test3.nc', group='OBS')
-    obs = rinexobs(rdir/'demo3.10o', use='G')
 
-    assert obs.equals(truth)
+    for u in ('G',['G']):
+        obs = rinexobs(rdir/'demo3.10o', use=u)
+        assert obs.equals(truth)
 
 
 def test_nav3sbas():

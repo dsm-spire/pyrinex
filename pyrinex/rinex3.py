@@ -157,8 +157,8 @@ def _scan3(fn, use, verbose=False):
                 raw += l[3:]
 
             darr = np.genfromtxt(BytesIO(raw.encode('ascii')), delimiter=(14,1,1)*Fmax)
-# %% TODO make for all systems, not just GNSS
-            i = [i for i,s in enumerate(sv) if s[0]==use]
+# %% Tselect one, few, or all satellites
+            i = [i for i,s in enumerate(sv) if s[0] in use]
             garr = darr[i,:]
             gsv = np.array(sv)[i]
 # %% assign data for each time step

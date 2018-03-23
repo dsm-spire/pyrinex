@@ -167,7 +167,7 @@ def _scan2(fn, use, verbose=False):
             sv = _getSVlist(l, min(12,n), sv)
             n -= 12
         assert Nsv == len(sv), 'satellite list read incorrectly'
-# %% TODO make for all systems, not just GNSS
+# %% select one, a few, or all satellites
         if use is not None:
             iuse = [i for i,s in enumerate(sv) if s[0] in use]
         else:
@@ -183,7 +183,7 @@ def _scan2(fn, use, verbose=False):
             for _ in range(Nl_sv):
                 raw += f.readline()[:80]
 
-            if use is not None and not s[0] in use: # TODO: allow more than one selection
+            if use is not None and not s[0] in use: # save a lot of time by not processing discarded satellites
                 continue
 
             raw = raw.replace('\n',' ')  # some files truncate and put \n in data space.
