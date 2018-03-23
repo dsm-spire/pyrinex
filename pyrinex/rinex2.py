@@ -1,4 +1,4 @@
-from __future__ import division # NEED for Py27
+from __future__ import division, print_function # NEED for Py27
 from . import Path
 import numpy as np
 from math import ceil
@@ -97,6 +97,7 @@ def _scan2(fn, verbose=False):
   """
   with fn.open('r') as f:
     header={}
+    Nobs = None
     # Capture header info
     for l in f:
         if "END OF HEADER" in l:
@@ -105,10 +106,12 @@ def _scan2(fn, verbose=False):
         h = l[60:80]
         c = l[:60]
         if '# / TYPES OF OBSERV' in h:
-            c = ' '.join(c.split()[1:]) # drop vestigal count
+            if Nobs is None:
+                Nobs = int(c[:6])
+                c = c[6:]
 
         if h.strip() not in header: #Header label
-            header[h.strip()] = c  # don't strip for fixed-width parsers
+            header[h.strip()] = c
             # string with info
         else:
             header[h.strip()] += " " + c
@@ -120,7 +123,7 @@ def _scan2(fn, verbose=False):
     header['APPROX POSITION XYZ'] = [float(j) for j in header['APPROX POSITION XYZ'].split()]
     #observation types
     fields = header['# / TYPES OF OBSERV'].split()
-    Nobs = len(fields)
+    assert Nobs == len(fields), 'header read incorrectly'
 
     header['INTERVAL'] = float(header['INTERVAL'][:10])
 
@@ -138,7 +141,7 @@ def _scan2(fn, verbose=False):
 
         time =  _obstime([l[1:3],  l[4:6], l[7:9],  l[10:12], l[13:15], l[16:26]])
         if verbose:
-            print(time)
+            print(time,'\r',end="")
 
         try:
             toffset = l[68:80]
@@ -147,18 +150,15 @@ def _scan2(fn, verbose=False):
 # %% get SV indices
         Nsv = int(l[29:32])  # Number of visible satellites this time %i3
         # get first 12 SV ID's
-        sv = []
-        for i in range(12):
-            s = l[32+i*3:35+i*3].strip()
-            if not s:
-                break
-            sv.append(s)
+        sv = _getSVlist(l, min(12,Nsv), [])
 
         # any more SVs?
-        if Nsv > 12:
+        n = Nsv-12
+        while n > 0:
             l = f.readline()
-            for i in range(Nsv%12):
-                sv.append(l[32+i*3:35+i*3])
+            sv = _getSVlist(l, min(12,n), sv)
+            n -= 12
+        assert Nsv == len(sv), 'satellite list read incorrectly'
 # %% data processing
         darr = np.empty((Nsv,Nobs*3))
         Nl_sv = int(ceil(Nobs/5))  # CEIL needed for Py27 only.
@@ -190,6 +190,17 @@ def _scan2(fn, verbose=False):
     data.attrs['RINEX version'] = verRinex
 
     return data
+
+
+def _getSVlist(l, N, sv):
+    """ parse a line of text from RINEX2 SV list"""
+    for i in range(N):
+        s = l[32+i*3:35+i*3].strip()
+        if not s.strip():
+            raise ValueError('did not get satellite names from {}'.format(l))
+        sv.append(s)
+
+    return sv
 
 
 def _obstime(fol):
